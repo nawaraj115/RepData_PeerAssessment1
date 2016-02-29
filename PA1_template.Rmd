@@ -1,25 +1,67 @@
 ---
-title: "Reproducible Research: Peer Assessment 1"
-output: 
-  html_document:
-    keep_md: true
+title: "Project 1"
+output: html_document
 ---
 
 
-## Loading and preprocessing the data
+```{r, echo=TRUE}
 
+#1. Reading and processing the data
+#####Working directory
+getwd()
+setwd("C:/Users/nawaraj/Desktop/reproducible/week1")
+######Reading raw data from csv file
+data<-read.csv("activity.csv")
+tail(data)
+```
 
+````{r, echo=TRUE}
+###2.the total number of steps taken each day
+#Bin of the histogram is randomly choosen.
+temp.data <- aggregate(steps ~ date, data=data, sum, na.rm = TRUE)
+hist(temp.data$steps, breaks=15, main="Total Steps per Day", xlab="Steps", ylab="Frequency")
+```
+```{r, echo=TRUE}
+###3.Mean and median number of steps taken each day
+steps_mean <- mean(data$steps, na.rm=TRUE)
+steps_median <- median(data$steps, na.rm=TRUE)
+print(paste("The mean steps per day is: ", steps_mean))
+print(paste("The median steps per day is: ", steps_median))
+```
+```{r, echo=TRUE}
+###4Time series plot of the average number of steps taken
+stepsdata <- aggregate(steps ~ interval, data=data, mean, na.rm=TRUE)
+plot(stepsdata$interval, stepsdata$steps, type="l", main="Average Steps per Five Minute Interval",
+     xlab="Interval No.", ylab="steps")
+```
+```{r, echo=TRUE}
+###he 5-minute interval that, on average, contains the maximum number of steps
+maxsteps <- max(stepsdata$steps)
+print(paste("The maximum number of steps in a five minute interval was: ", maxsteps))
+### strategy for imputing missing data
+missingdata <- sum(is.na(data$steps))
+print(paste("There are", missingdata, "missing data points."))
+###eplace any NA value with the median value in the data set
+#Bucket/bin of histogram is slected as random.
+betterdata <- data
+betterdata$steps[is.na(betterdata$steps)] <- median(data$steps, na.rm=TRUE)
+betterdataday <- aggregate(steps ~ date, data=betterdata, sum, na.rm=TRUE)
+hist(betterdataday$steps, breaks=20, main="Total Steps per Day \n Adjusted Data",
+     xlab="Steps", ylab="Frequency")
+bsteps_mean <- mean(betterdata$steps)
+bsteps_median <- median(betterdata$steps)
+print(paste("The mean is: ", bsteps_mean))
+```
 
-## What is mean total number of steps taken per day?
+```{r, echo=TRUE}
+#####6. differences in activity patterns between weekdays and weekends?
+betterdata$date <- as.Date(betterdata$date)
+betterdata$dayname <- weekdays(betterdata$date)
+betterdata$weekend <- as.factor(ifelse(betterdata$dayname == "Saturday" |
+                                         betterdata$dayname == "Sunday", "weekend", "weekday"))
+library(lattice)
+plotdata <- aggregate(steps ~ interval + weekend, betterdata, mean)
+xyplot(steps ~ interval | factor(weekend), data=plotdata, aspect=1/3, type="l")
 
+```
 
-
-## What is the average daily activity pattern?
-
-
-
-## Imputing missing values
-
-
-
-## Are there differences in activity patterns between weekdays and weekends?
